@@ -32,6 +32,7 @@ public class Pokemon {
     }
 
     public Pokemon(){}
+
     //--------------Getters y Setters----------------------------
     public int getId() {
         return id;
