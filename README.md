@@ -47,4 +47,4 @@ src/main/java/.../pokestadium/
 
 ## Autores
 
-- _Tu nombre_
+- Gabriel Uraza
