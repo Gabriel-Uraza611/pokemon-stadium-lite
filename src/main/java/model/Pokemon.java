@@ -31,6 +31,7 @@ public class Pokemon {
         this.move = move;
     }
 
+    public Pokemon(){}
     //--------------Getters y Setters----------------------------
     public int getId() {
         return id;
@@ -121,7 +122,7 @@ public class Pokemon {
         }
     }
 
-    public boolean isFanted(){
+    public boolean isFainted(){
         return this.currentHp == 0;
     }
 }
