@@ -5,30 +5,30 @@ import java.util.List;
 public class Pokemon {
     private int id;
     private String name;
-    private Type type;
+    private List<Type> types;
     private int maxHp;
     private int currentHp;
     private int attack;
     private int defence;
     private int speed;
     private String sprite;
-    private List<Move> move;
+    private List<Move> moves;
 
     public Pokemon(
-            int id, String name, Type type,
+            int id, String name, List<Type> types,
             int maxHp, int currentHp,
             int attack, int defence, int speed,
-            List<Move> move, String sprite){
+            List<Move> moves, String sprite){
         this.id = id;
         this.name = name;
-        this.type = type;
+        this.types = types;
         this.maxHp = maxHp;
         this.currentHp = currentHp;
         this.attack = attack;
         this.defence = defence;
         this.speed = speed;
         this.sprite = sprite;
-        this.move = move;
+        this.moves = moves;
     }
 
     public Pokemon(){}
@@ -50,12 +50,12 @@ public class Pokemon {
         this.name = name;
     }
 
-    public Type getType() {
-        return type;
+    public List<Type> getTypes() {
+        return types;
     }
 
-    public void setType(Type type) {
-        this.type = type;
+    public void setTypes(List<Type> types) {
+        this.types = types;
     }
 
     public int getCurrentHp() {
@@ -107,11 +107,11 @@ public class Pokemon {
     }
 
     public List<Move> getMove() {
-        return move;
+        return moves;
     }
 
-    public void setMove(List<Move> move) {
-        this.move = move;
+    public void setMove(List<Move> moves) {
+        this.moves = moves;
     }
 
     //-------Metodos---------
