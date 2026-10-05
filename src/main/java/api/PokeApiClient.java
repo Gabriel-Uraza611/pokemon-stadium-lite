@@ -13,11 +13,14 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class PokeApiClient {
 
     //variable global de clase
     private final HttpClient client;
+    private static final int MAX_POKEMON_ID = 151; // primera generación
+    private final Random random = new Random();
 
     //inyeccion de dependencias para constructor con parametros -> para pruebas unitarias
     public PokeApiClient(HttpClient client) {
@@ -59,6 +62,11 @@ public class PokeApiClient {
         }catch (IOException e) {
             throw new PokeApiException(ErrorType.NETWORK, "Error de red: " + e.getMessage());
         }
+    }
+
+    public Pokemon fetchRandom() {
+        int id = random.nextInt(MAX_POKEMON_ID) + 1;
+        return fetchByName(String.valueOf(id));
     }
 
     public Pokemon fetchByName(String name){

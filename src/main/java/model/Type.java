@@ -9,6 +9,7 @@ public enum Type {
     ROCK,
     BUG,
     GHOST,
+    STEEL,
     FIRE,
     WATER,
     GRASS,
@@ -16,4 +17,6 @@ public enum Type {
     PSYCHIC,
     ICE,
     DRAGON,
+    DARK,
+    FAIRY
 }
