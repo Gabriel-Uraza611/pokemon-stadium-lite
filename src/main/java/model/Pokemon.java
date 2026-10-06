@@ -1,5 +1,6 @@
 package model;
 
+import java.awt.*;
 import java.util.List;
 
 public class Pokemon {
@@ -12,6 +13,7 @@ public class Pokemon {
     private int defence;
     private int speed;
     private String sprite;
+    private transient Image spriteImage;
     private List<Move> moves;
 
     public Pokemon(
@@ -34,6 +36,23 @@ public class Pokemon {
     public Pokemon(){}
 
     //--------------Getters y Setters----------------------------
+
+    public Image getSpriteImage() {
+        return spriteImage;
+    }
+
+    public void setSpriteImage(Image spriteImage) {
+        this.spriteImage = spriteImage;
+    }
+
+    public List<Move> getMoves() {
+        return moves;
+    }
+
+    public void setMoves(List<Move> moves) {
+        this.moves = moves;
+    }
+
     public int getId() {
         return id;
     }
@@ -104,14 +123,6 @@ public class Pokemon {
 
     public void setSprite(String sprite) {
         this.sprite = sprite;
-    }
-
-    public List<Move> getMove() {
-        return moves;
-    }
-
-    public void setMove(List<Move> moves) {
-        this.moves = moves;
     }
 
     //-------Metodos---------

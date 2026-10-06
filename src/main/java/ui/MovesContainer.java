@@ -7,6 +7,8 @@ import javax.swing.border.MatteBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import model.Move;
+import java.util.List;
 
 public class MovesContainer extends JPanel {
 
@@ -17,6 +19,7 @@ public class MovesContainer extends JPanel {
 
     private final Color playerColor;
     private final Color movesBackgroundColor;
+    private final JButton[] moveButtons;
 
     public MovesContainer(Color background, Color playerColor) {
         this.movesBackgroundColor = background;
@@ -32,11 +35,40 @@ public class MovesContainer extends JPanel {
         move2Button = createMoveButton("ataque 2", BorderPosition.TOP_RIGHT);
         move3Button = createMoveButton("ataque 3", BorderPosition.BOTTOM_LEFT);
         move4Button = createMoveButton("ataque 4", BorderPosition.BOTTOM_RIGHT);
-
+        moveButtons = new JButton[]{move1Button, move2Button, move3Button, move4Button};
         add(move1Button);
         add(move2Button);
         add(move3Button);
         add(move4Button);
+        setMoves(null);
+    }
+
+    /** Muestra hasta 4 movimientos; los botones sobrantes quedan vacíos y deshabilitados. */
+    public void setMoves(List<Move> moves) {
+        for (int i = 0; i < moveButtons.length; i++) {
+            JButton b = moveButtons[i];
+            if (moves != null && i < moves.size()) {
+                Move m = moves.get(i);
+                b.setText(prettify(m.getName()));
+                b.setToolTipText(m.getType() + " · poder " + m.getPower());
+                b.setEnabled(true);
+            } else {
+                b.setText("-");
+                b.setToolTipText(null);
+                b.setEnabled(false);
+            }
+        }
+    }
+
+    // "thunder-punch" -> "Thunder Punch"
+    private String prettify(String apiName) {
+        StringBuilder sb = new StringBuilder();
+        for (String part : apiName.split("-")) {
+            if (part.isEmpty()) continue;
+            if (sb.length() > 0) sb.append(' ');
+            sb.append(Character.toUpperCase(part.charAt(0))).append(part.substring(1));
+        }
+        return sb.toString();
     }
 
     private enum BorderPosition {

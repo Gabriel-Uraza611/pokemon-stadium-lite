@@ -1,15 +1,22 @@
 package ui;
 
+import api.PokeApiClient;
 import controller.AudioController;
+import controller.PokemonLoadController;
+import model.Pokemon;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.awt.image.ImageObserver;
+import java.util.function.Consumer;
 
 public class MainFrame extends JFrame {
 
     private JPanel leftBattlePanel;
     private JPanel rightLogPanel;
+    private LogPanel logPanel;
     private JPanel playerOnePanel;
     private JPanel playerTwoPanel;
     private PokemonCard pokemonBoxP1;
@@ -19,8 +26,30 @@ public class MainFrame extends JFrame {
     private MovesContainer movesContainerP1;
     private MovesContainer movesContainerP2;
     private JButton fightButton;
+    private final PokemonLoadController loadController = new PokemonLoadController(new PokeApiClient());
+    private Pokemon pokemonP1, pokemonP2;
 
     private final AudioController audioController = new AudioController();
+
+    private void wirePlayer(SearchPanel search, PokemonCard card, MovesContainer moves,
+                            Consumer<Pokemon> store) {
+
+        Consumer<Pokemon> onSuccess = p -> {
+            card.showPokemon(p);
+            moves.setMoves(p.getMoves());
+            search.setText(p.getName());           // útil cuando viene de Random
+            store.accept(p);
+            fightButton.setEnabled(pokemonP1 != null && pokemonP2 != null);
+        };
+
+        Consumer<String> onError = msg -> logPanel.addLog(msg);
+
+        search.addLoadListener(e ->
+                loadController.loadByName(search.getText(), onSuccess, onError));
+
+        search.addRandomListener(e ->
+                loadController.loadRandom(onSuccess, onError));
+    }
 
     public MainFrame() {
         setTitle("Pokemon Stadium Lite");
@@ -89,15 +118,26 @@ public class MainFrame extends JFrame {
         add(leftBattlePanel, BorderLayout.CENTER);
 
         // ----------------------------------------------------
-        // PANEL DERECHO (LOG) + BOTÓN FIGHT!
+        // PANEL DERECHO (LOG) + BOTÓN FIGHT! + LOGO
         // ----------------------------------------------------
         rightLogPanel = new JPanel();
         rightLogPanel.setLayout(new BorderLayout());
         rightLogPanel.setBackground(new Color(226, 232, 228));
         rightLogPanel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(Color.BLACK, 2),
-                new EmptyBorder(10, 10, 10, 10)));
+                new EmptyBorder(2, 10, 10, 10))); // Top padding reducido a 2px
         rightLogPanel.setPreferredSize(new Dimension(360, 0));
+
+        // Logo arriba - escalado a ~170px de ancho
+        JLabel logoLabel = createLogoLabel();
+        JPanel logoWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        logoWrapper.setOpaque(false);
+        logoWrapper.add(logoLabel);
+        rightLogPanel.add(logoWrapper, BorderLayout.NORTH);
+
+        // LogPanel con scroll - ocupa el centro
+        logPanel = new LogPanel();
+        rightLogPanel.add(logPanel, BorderLayout.CENTER);
 
         // Botón FIGHT! - centrado abajo
         fightButton = createFightButton();
@@ -113,6 +153,10 @@ public class MainFrame extends JFrame {
 
         // Listener del botón FIGHT!
         fightButton.addActionListener(e -> onFightPressed());
+        fightButton.setEnabled(false);
+        wirePlayer(searchPanelP1, pokemonBoxP1, movesContainerP1, p -> pokemonP1 = p);
+        wirePlayer(searchPanelP2, pokemonBoxP2, movesContainerP2, p -> pokemonP2 = p);
+
 
         setVisible(true);
     }
@@ -136,10 +180,41 @@ public class MainFrame extends JFrame {
         System.out.println("¡COMBATE INICIADO!");
     }
 
+    private JLabel createLogoLabel() {
+        // Cargar imagen desde resources
+        ImageIcon originalIcon = new ImageIcon(
+            getClass().getClassLoader().getResource("img/logo.png")
+        );
+
+        if (originalIcon.getImageLoadStatus() != MediaTracker.COMPLETE) {
+            // Fallback si no carga
+            JLabel fallback = new JLabel("POKÉMON STADIUM LITE");
+            fallback.setFont(new Font("SansSerif", Font.BOLD, 18));
+            fallback.setForeground(new Color(42, 117, 187));
+            return fallback;
+        }
+
+        // Escalar a ~220px de ancho (bien grande)
+        int targetWidth = 220;
+        int targetHeight = (int) (targetWidth * (originalIcon.getIconHeight() / (double) originalIcon.getIconWidth()));
+        Image scaledImage = originalIcon.getImage().getScaledInstance(
+            targetWidth, targetHeight, Image.SCALE_SMOOTH
+        );
+        ImageIcon scaledIcon = new ImageIcon(scaledImage);
+
+        JLabel logoLabel = new JLabel(scaledIcon);
+        logoLabel.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 0));
+        return logoLabel;
+    }
+
     @Override
     public void dispose() {
         audioController.stop();
         super.dispose();
+    }
+
+    public LogPanel getLogPanel() {
+        return logPanel;
     }
 
     public static void main(String[] args) {

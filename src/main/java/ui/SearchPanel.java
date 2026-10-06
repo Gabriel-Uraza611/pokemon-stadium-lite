@@ -3,6 +3,7 @@ package ui;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.ActionListener;
 
 public class SearchPanel extends JPanel {
     private JTextField nameField;
@@ -79,13 +80,17 @@ public class SearchPanel extends JPanel {
         return button;
     }
 
-    public String getNameText() {
+    public String getText() {
         return nameField.getText().trim();
     }
 
-    public void clearName() {
-        nameField.setText("");
+    public void setText(String t) {
+        nameField.setText(t);
     }
+
+    public void addLoadListener(ActionListener l)   { loadButton.addActionListener(l); }
+
+    public void addRandomListener(ActionListener l) { randomButton.addActionListener(l); }
 
     public JTextField getNameField() {
         return nameField;
