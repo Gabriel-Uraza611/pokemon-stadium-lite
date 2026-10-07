@@ -133,6 +133,9 @@ public class Pokemon {
             this.currentHp = 0;
         }
     }
+    public void heal() {
+        this.currentHp = this.maxHp;
+    }
 
     public boolean isFainted(){
         return this.currentHp == 0;

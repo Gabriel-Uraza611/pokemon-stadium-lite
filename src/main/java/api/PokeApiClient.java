@@ -139,15 +139,16 @@ public class PokeApiClient {
             //extraccion de movimientos
             List<Move> pMoves = new ArrayList<>();
             JSONArray movesArray = jsonBody.getJSONArray("moves");
-            int limit = Math.min(movesArray.length(), 4);
 
-            for (int i = 0; i < limit; i++) {
-                JSONObject moveEntry = movesArray.getJSONObject(i);
-                String moveUrl = moveEntry.getJSONObject("move").getString("url");
-
-                // Delegamos la complejidad al método auxiliar
-                pMoves.add(fetchMoveDetails(moveUrl));
+// Recorre hasta juntar 4 movimientos que hagan daño (tope de 20 consultas)
+            for (int i = 0; i < movesArray.length() && pMoves.size() < 4 && i < 20; i++) {
+                String moveUrl = movesArray.getJSONObject(i).getJSONObject("move").getString("url");
+                Move m = fetchMoveDetails(moveUrl);
+                if (m.getPower() > 0) pMoves.add(m);
             }
+
+// Respaldo para que nunca quede sin ataques
+            if (pMoves.isEmpty()) pMoves.add(new Move("tackle", Type.NORMAL, 40));
 
             return new Pokemon(
                     pId, pName, pTypes,

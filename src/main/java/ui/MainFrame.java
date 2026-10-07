@@ -2,6 +2,7 @@ package ui;
 
 import api.PokeApiClient;
 import controller.AudioController;
+import controller.BattleController;
 import controller.PokemonLoadController;
 import model.Pokemon;
 
@@ -28,6 +29,7 @@ public class MainFrame extends JFrame {
     private JButton fightButton;
     private final PokemonLoadController loadController = new PokemonLoadController(new PokeApiClient());
     private Pokemon pokemonP1, pokemonP2;
+    private BattleController battleController;
 
     private final AudioController audioController = new AudioController();
 
@@ -157,6 +159,8 @@ public class MainFrame extends JFrame {
         wirePlayer(searchPanelP1, pokemonBoxP1, movesContainerP1, p -> pokemonP1 = p);
         wirePlayer(searchPanelP2, pokemonBoxP2, movesContainerP2, p -> pokemonP2 = p);
 
+        battleController = new BattleController(pokemonBoxP1, pokemonBoxP2,
+                movesContainerP1, movesContainerP2, logPanel);
 
         setVisible(true);
     }
@@ -175,9 +179,46 @@ public class MainFrame extends JFrame {
     }
 
     private void onFightPressed() {
+        if (pokemonP1 == null || pokemonP2 == null) return;
+
         audioController.switchTo("audio/battle.wav");
-        // TODO: Aquí irá la lógica de iniciar combate
-        System.out.println("¡COMBATE INICIADO!");
+        setControlsEnabled(false);   // nada se puede tocar mientras se pelea
+
+        battleController.start(pokemonP1, pokemonP2, this::onBattleFinished);
+    }
+
+    private void onBattleFinished(String winner) {
+        // la música de victoria suena apenas termina el combate
+        audioController.switchTo("audio/win.wav");
+
+        // invokeLater deja que la barra de HP termine de pintarse antes de abrir el diálogo
+        SwingUtilities.invokeLater(() -> {
+            Object[] options = {"Jugar de nuevo", "Cerrar"};
+            int choice = JOptionPane.showOptionDialog(
+                    this,
+                    "¡" + winner + " es el ganador!",
+                    "Fin del combate",
+                    JOptionPane.DEFAULT_OPTION,
+                    JOptionPane.INFORMATION_MESSAGE,
+                    null,
+                    options,
+                    options[0]);
+
+            if (choice == 1) {               // Cerrar: sale de la aplicación
+                dispose();
+                System.exit(0);
+            } else {                         // Jugar de nuevo (o cerró el diálogo con la X)
+                resetGame();
+            }
+        });
+    }
+
+    private void setControlsEnabled(boolean enabled) {
+        fightButton.setEnabled(enabled && pokemonP1 != null && pokemonP2 != null);
+        for (SearchPanel s : new SearchPanel[]{searchPanelP1, searchPanelP2}) {
+            s.getLoadButton().setEnabled(enabled);
+            s.getRandomButton().setEnabled(enabled);
+        }
     }
 
     private JLabel createLogoLabel() {
@@ -205,6 +246,30 @@ public class MainFrame extends JFrame {
         JLabel logoLabel = new JLabel(scaledIcon);
         logoLabel.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 0));
         return logoLabel;
+    }
+
+    /** Deja la aplicación como recién abierta: sin Pokémon, sin log y lista para seleccionar. */
+    private void resetGame() {
+        pokemonP1 = null;
+        pokemonP2 = null;
+
+        pokemonBoxP1.clear();
+        pokemonBoxP2.clear();
+
+        movesContainerP1.setActive(false);
+        movesContainerP2.setActive(false);
+        movesContainerP1.setMoves(null);
+        movesContainerP2.setMoves(null);
+
+        searchPanelP1.setText("");
+        searchPanelP2.setText("");
+
+        logPanel.clear();
+
+        // Reactiva Load y Random; FIGHT! queda deshabilitado porque ya no hay Pokémon cargados
+        setControlsEnabled(true);
+
+        audioController.switchTo("audio/selection.wav");
     }
 
     @Override

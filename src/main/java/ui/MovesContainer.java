@@ -9,6 +9,10 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import model.Move;
 import java.util.List;
+import model.Move;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 
 public class MovesContainer extends JPanel {
 
@@ -20,6 +24,9 @@ public class MovesContainer extends JPanel {
     private final Color playerColor;
     private final Color movesBackgroundColor;
     private final JButton[] moveButtons;
+    private List<Move> currentMoves = new ArrayList<>();
+    private Consumer<Move> moveListener;
+    private boolean active = false;   // los botones solo se activan en el turno del jugador
 
     public MovesContainer(Color background, Color playerColor) {
         this.movesBackgroundColor = background;
@@ -41,22 +48,46 @@ public class MovesContainer extends JPanel {
         add(move3Button);
         add(move4Button);
         setMoves(null);
+        for (int i = 0; i < moveButtons.length; i++) {
+            final int index = i;
+            moveButtons[i].addActionListener(e -> {
+                if (moveListener != null && index < currentMoves.size()) {
+                    moveListener.accept(currentMoves.get(index));
+                }
+            });
+        }
+        setMoves(null);
     }
 
     /** Muestra hasta 4 movimientos; los botones sobrantes quedan vacíos y deshabilitados. */
     public void setMoves(List<Move> moves) {
+        currentMoves = (moves == null) ? new ArrayList<>() : new ArrayList<>(moves);
         for (int i = 0; i < moveButtons.length; i++) {
-            JButton b = moveButtons[i];
-            if (moves != null && i < moves.size()) {
-                Move m = moves.get(i);
-                b.setText(prettify(m.getName()));
-                b.setToolTipText(m.getType() + " · poder " + m.getPower());
-                b.setEnabled(true);
+            if (i < currentMoves.size()) {
+                Move m = currentMoves.get(i);
+                moveButtons[i].setText(prettify(m.getName()));
+                moveButtons[i].setToolTipText(m.getType() + " · poder " + m.getPower());
             } else {
-                b.setText("-");
-                b.setToolTipText(null);
-                b.setEnabled(false);
+                moveButtons[i].setText("-");
+                moveButtons[i].setToolTipText(null);
             }
+        }
+        refreshEnabled();
+    }
+
+    /** true = es el turno de este jugador y puede elegir un movimiento. */
+    public void setActive(boolean active) {
+        this.active = active;
+        refreshEnabled();
+    }
+
+    public void setMoveListener(Consumer<Move> listener) {
+        this.moveListener = listener;
+    }
+
+    private void refreshEnabled() {
+        for (int i = 0; i < moveButtons.length; i++) {
+            moveButtons[i].setEnabled(active && i < currentMoves.size());
         }
     }
 
